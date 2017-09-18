@@ -1,7 +1,5 @@
 #pragma once
 
-#include <nanogui\object.h>
-
 class Node;
 class Grid;
 class PathFinder;
@@ -14,10 +12,10 @@ public:
 		Obstacle
 	};
 
-	NavPainter(Grid& grid, nanogui::ref<PathFinder> pathFinder);
+	NavPainter(Grid& grid, PathFinder& pathFinder);
 	~NavPainter();
 
-	bool paintEvent(int button, nanogui::ref<Node> node);
+	bool paintEvent(int button, Node* node);
 	void setCurrentBrush(BrushType brush);
 
 private:
@@ -26,6 +24,6 @@ private:
 
 	BrushType m_currentBrush;
 	Grid& m_grid;
-	nanogui::ref<PathFinder> m_pathFinder;
+	PathFinder& m_pathFinder;
 };
 

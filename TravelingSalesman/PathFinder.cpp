@@ -8,9 +8,9 @@
 #include "Node.h"
 
 
-PathFinder::PathFinder(nanogui::Widget* parent, nanogui::ref<nanogui::Window> parentWindow)
+PathFinder::PathFinder(nanogui::Widget* parent, nanogui::Window* parentWindow)
 	: Window(parent, "")
-	, m_parentWindow{ std::move(parentWindow) }
+	, m_parentWindow{ parentWindow }
 	, m_stopped{ true }
 {
 }
@@ -20,22 +20,22 @@ PathFinder::~PathFinder()
 {
 }
 
-void PathFinder::setStartNode(nanogui::ref<Node> node)
+void PathFinder::setStartNode(Node* node)
 {
 	if (!node)
 		return;
 
 	stop();
-	m_startNode = std::move(node);
+	m_startNode = node;
 }
 
-void PathFinder::setEndNode(nanogui::ref<Node> node)
+void PathFinder::setEndNode(Node* node)
 {
 	if (!node)
 		return;
 
 	stop();
-	m_endNode = std::move(node);
+	m_endNode = node;
 }
 
 bool PathFinder::isStart(const Node * node) const
@@ -43,7 +43,7 @@ bool PathFinder::isStart(const Node * node) const
 	if (!node)
 		return false;
 
-	return node == m_startNode.get();
+	return node == m_startNode;
 }
 
 bool PathFinder::isEnd(const Node * node) const
@@ -51,7 +51,7 @@ bool PathFinder::isEnd(const Node * node) const
 	if (!node)
 		return false;
 
-	return node == m_endNode.get();
+	return node == m_endNode;
 }
 
 void PathFinder::calculatePath()
@@ -221,8 +221,10 @@ void PathFinder::draw(NVGcontext* ctx)
 
 void PathFinder::refreshRelativePlacement()
 {
-	mPos = m_parentWindow->position();
-	mSize = m_parentWindow->size();
+	if (m_parentWindow) {
+		mPos = m_parentWindow->position();
+		mSize = m_parentWindow->size();
+	}
 }
 
 bool PathFinder::mouseButtonEvent(const nanogui::Vector2i & p, int button, bool down, int modifiers)

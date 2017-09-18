@@ -1,13 +1,11 @@
-#include <nanogui\object.h>
-
 #include "NavPainter.h"
 #include "Node.h"
 #include "Grid.h"
 #include "PathFinder.h"
 
-NavPainter::NavPainter(Grid& grid, nanogui::ref<PathFinder> pathfinder)
+NavPainter::NavPainter(Grid& grid, PathFinder& pathfinder)
 	: m_grid{ grid }
-	, m_pathFinder{ std::move(pathfinder) }
+	, m_pathFinder{ pathfinder }
 	, m_currentBrush{ BrushType::Start }
 {
 }
@@ -17,23 +15,23 @@ NavPainter::~NavPainter()
 {
 }
 
-bool NavPainter::paintEvent(int button, nanogui::ref<Node> node)
+bool NavPainter::paintEvent(int button, Node* node)
 {
 	if (!node)
 		return false;
 
-	bool startOrEnd = m_pathFinder->isStart(node) || m_pathFinder->isEnd(node);
+	bool startOrEnd = m_pathFinder.isStart(node) || m_pathFinder.isEnd(node);
 
 	switch (m_currentBrush) {
 	case NavPainter::Start:
 		if (!startOrEnd && !node->isObstructed()) {
-			m_pathFinder->setStartNode(std::move(node));
+			m_pathFinder.setStartNode(node);
 			return true; // Handled / state change occured
 		}
 		break;
 	case NavPainter::End:
 		if (!startOrEnd && !node->isObstructed()) {
-			m_pathFinder->setEndNode(std::move(node));
+			m_pathFinder.setEndNode(node);
 			return true; // Handled / state change occured
 		}
 		break;
@@ -60,7 +58,7 @@ void NavPainter::setCurrentBrush(BrushType brush)
 
 void NavPainter::paintObstacle(Node& node)
 {
-	m_pathFinder->stop();
+	m_pathFinder.stop();
 	node.setObstructed(true);
 
 	// Remove cardinal nodes' diagonal connections around this node
@@ -80,7 +78,7 @@ void NavPainter::paintObstacle(Node& node)
 
 void NavPainter::clearObstacle(Node& node)
 {
-	m_pathFinder->stop();
+	m_pathFinder.stop();
 	node.setObstructed(false);
 
 	// Reconnect the now unobstructed node
@@ -91,7 +89,7 @@ void NavPainter::clearObstacle(Node& node)
 
 			size_t row = node.getRow() + relR;
 			size_t col = node.getCol() + relC;
-			nanogui::ref<Node> nodeTo = m_grid[row][col];
+			Node* nodeTo = m_grid[row][col];
 
 			if (m_grid.areConnectable(&node, nodeTo))
 				node.connect(nodeTo);
@@ -101,10 +99,10 @@ void NavPainter::clearObstacle(Node& node)
 	// Recconnect cardinal nodes' diagonal connections around this node
 	size_t row = node.getRow();
 	size_t col = node.getCol();
-	nanogui::ref<Node> node1 = m_grid[row - 1][col];
-	nanogui::ref<Node> node2 = m_grid[row][col - 1];
-	nanogui::ref<Node> node3 = m_grid[row + 1][col];
-	nanogui::ref<Node> node4 = m_grid[row][col + 1];
+	Node* node1 = m_grid[row - 1][col];
+	Node* node2 = m_grid[row][col - 1];
+	Node* node3 = m_grid[row + 1][col];
+	Node* node4 = m_grid[row][col + 1];
 	if (m_grid.areConnectable(node1, node2))
 		Node::connect(node1, node2);
 	if (m_grid.areConnectable(node2, node3))

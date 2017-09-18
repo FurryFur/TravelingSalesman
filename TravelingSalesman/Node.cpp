@@ -8,16 +8,16 @@ using namespace nanogui;
 
 const float Node::s_kBorderWidth = 4;
 
-Node::Node(Window * window, std::shared_ptr<NavPainter> navPainter, size_t row, size_t col)
+Node::Node(Window* window, NavPainter& navPainter, size_t row, size_t col)
 	: Widget(window)
-	, m_navPainter{ std::move(navPainter) }
+	, m_navPainter{ navPainter }
 	, m_row{ row }
 	, m_col{ col }
 	, m_obstructed{ false }
 {
 }
 
-void Node::draw(NVGcontext * ctx)
+void Node::draw(NVGcontext* ctx)
 {
 	nvgSave(ctx);
 
@@ -33,7 +33,7 @@ void Node::draw(NVGcontext * ctx)
 	nvgStroke(ctx);
 
 	// Draw node connections
-	for (ref<Node> node : m_connections) {
+	for (Node* node : m_connections) {
 		nvgStrokeWidth(ctx, 2.0f);
 		nvgStrokeColor(ctx, nvgRGBA(0, 255, 0, 100));
 		nvgBeginPath(ctx);
@@ -65,10 +65,10 @@ void Node::draw(NVGcontext * ctx)
 	Widget::draw(ctx);
 }
 
-bool Node::mouseButtonEvent(const Vector2i & p, int button, bool down, int modifiers)
+bool Node::mouseButtonEvent(const Vector2i& p, int button, bool down, int modifiers)
 {
 	if ((button == GLFW_MOUSE_BUTTON_1 || button == GLFW_MOUSE_BUTTON_2) && down) {
-		m_navPainter->paintEvent(button, this);
+		m_navPainter.paintEvent(button, this);
 
 		return true;
 	}
@@ -76,16 +76,16 @@ bool Node::mouseButtonEvent(const Vector2i & p, int button, bool down, int modif
 	return Widget::mouseButtonEvent(p, button, down, modifiers);
 }
 
-bool Node::mouseEnterEvent(const Vector2i & p, bool enter)
+bool Node::mouseEnterEvent(const Vector2i& p, bool enter)
 {
 	if (enter) {
 		int button1State = glfwGetMouseButton(this->screen()->glfwWindow(), GLFW_MOUSE_BUTTON_1);
 		int button2State = glfwGetMouseButton(this->screen()->glfwWindow(), GLFW_MOUSE_BUTTON_2);
 
 		if (button1State == GLFW_PRESS)
-			return m_navPainter->paintEvent(GLFW_MOUSE_BUTTON_1, this);
+			return m_navPainter.paintEvent(GLFW_MOUSE_BUTTON_1, this);
 		if (button2State == GLFW_PRESS)
-			return m_navPainter->paintEvent(GLFW_MOUSE_BUTTON_2, this);
+			return m_navPainter.paintEvent(GLFW_MOUSE_BUTTON_2, this);
 	}
 
 	return Widget::mouseEnterEvent(p, enter);
@@ -121,15 +121,15 @@ bool Node::isObstructed() const
 	return m_obstructed;
 }
 
-bool Node::connect(nanogui::ref<Node> node1, nanogui::ref<Node> node2)
+bool Node::connect(Node* node1, Node* node2)
 {
 	if (!node1 || !node2)
 		return false;
 
-	return node1->connect(std::move(node2));
+	return node1->connect(node2);
 }
 
-bool Node::connect(ref<Node> node)
+bool Node::connect(Node* node)
 {
 	if (!node)
 		return false;
@@ -138,7 +138,7 @@ bool Node::connect(ref<Node> node)
 	auto it = std::find(m_connections.begin(), m_connections.end(), node);
 	if (it == m_connections.end()) {
 		node->m_connections.push_back(this); // From that to this
-		m_connections.push_back(std::move(node)); // From this to that
+		m_connections.push_back(node); // From this to that
 		return true;
 	}
 
@@ -153,7 +153,7 @@ bool Node::removeConnection(Node* node)
 	// Find and remove connection
 	auto it = m_connections.begin();
 	while (it != m_connections.end()) {
-		if (it->get() == node) {
+		if (*it == node) {
 			if (removeConnection(it) != m_connections.end())
 				return true;
 			else
@@ -174,11 +174,11 @@ bool Node::removeConnection(Node* node1, Node* node2)
 	return node1->removeConnection(node2);
 }
 
-std::list<ref<Node>>::iterator Node::removeConnection(std::list<nanogui::ref<Node>>::iterator nodeIt)
+std::list<Node*>::iterator Node::removeConnection(std::list<Node*>::iterator nodeIt)
 {
 	// Remove connection from specified node to this node
 	for (auto it = (*nodeIt)->m_connections.begin(); it != (*nodeIt)->m_connections.end(); ++it) {
-		if (*it == ref<Node>(this)) {
+		if (*it == this) {
 			(*nodeIt)->m_connections.erase(it);
 			break;
 		}
@@ -188,12 +188,12 @@ std::list<ref<Node>>::iterator Node::removeConnection(std::list<nanogui::ref<Nod
 	return m_connections.erase(nodeIt);
 }
 
-std::list<nanogui::ref<Node>>::iterator Node::getConnectionListBegin()
+std::list<Node*>::iterator Node::getConnectionListBegin()
 {
 	return m_connections.begin();
 }
 
-std::list<nanogui::ref<Node>>::iterator Node::getConnectionListEnd()
+std::list<Node*>::iterator Node::getConnectionListEnd()
 {
 	return m_connections.end();
 }

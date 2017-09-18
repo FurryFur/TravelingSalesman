@@ -30,14 +30,14 @@ AStarApp::AStarApp()
 	window2->setPosition({ 100, 15 });
 	window2->setLayout(new GridLayout(Orientation::Horizontal, Node::s_kGridSize));
 
-	// Instantiate path finder and its visual display
-	m_pathFinder = new PathFinder(this, window2);
-	m_navPainter = std::make_shared<NavPainter>(m_grid, m_pathFinder);
+	// Instantiate path finder and its UI components
+	auto pathFinder = new PathFinder(this, window2);
+	m_navPainter = std::make_unique<NavPainter>(m_grid, *pathFinder);
 
 	// Create pathing nodes
 	for (size_t i = 0; i < Node::s_kGridSize; ++i) {
 		for (size_t j = 0; j < Node::s_kGridSize; ++j) {
-			auto node = new Node(window2, m_navPainter, i, j);
+			auto node = new Node(window2, *m_navPainter, i, j);
 			node->setFixedSize({ 50, 50 });
 			m_grid.setGridNode(i, j, node);
 		}
@@ -67,8 +67,8 @@ AStarApp::AStarApp()
 	auto button = new Button(window3, "SIMULATE");
 	button->setBackgroundColor(Color(255, 0, 0, 1));
 	button->setFixedSize({ 500, 100 });
-	button->setCallback([this]() {
-		m_pathFinder->calculatePathAsync();
+	button->setCallback([pathFinder]() {
+		pathFinder->calculatePathAsync();
 	});
 
 	// Setup brush pallet

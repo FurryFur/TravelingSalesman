@@ -21,10 +21,8 @@ public:
 	virtual void draw(NVGcontext* ctx) override;
 
 private:
-	nanogui:: GLShader m_shader;
+	nanogui::GLShader m_shader;
 	float m_modulation;
 	Grid m_grid;
-	nanogui::ref<PathFinder> m_pathFinder;
-	std::shared_ptr<NavPainter> m_navPainter;
-	std::future<void> m_pathingFuture;
+	std::unique_ptr<NavPainter> m_navPainter;
 };

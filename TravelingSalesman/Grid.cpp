@@ -1,7 +1,5 @@
 #include <math.h>
 
-#include <nanogui\object.h>
-
 #include "Grid.h"
 #include "Node.h"
 
@@ -15,17 +13,17 @@ Grid::~Grid()
 {
 }
 
-void Grid::setGridNode(size_t row, size_t col, nanogui::ref<Node> node)
+void Grid::setGridNode(size_t row, size_t col, Node* node)
 {
-	m_internalGrid[row][col] = std::move(node);
+	m_internalGrid[row][col] = node;
 }
 
-nanogui::ref<Node> Grid::getGridNode(size_t row, size_t col) const
+Node* Grid::getGridNode(size_t row, size_t col) const
 {
 	if (row < s_kGridSize && col < s_kGridSize)
 		return m_internalGrid[row][col];
 
-	return nanogui::ref<Node>{};
+	return nullptr;
 }
 
 Grid::IndexProxy Grid::operator[](size_t row) const
@@ -63,8 +61,8 @@ bool Grid::areConnectable(Node* from, Node* to) const
 	// Check cross diagonal
 	size_t crossDiagR = fromR + relR;
 	size_t crossDiagC = fromC + relC;
-	const nanogui::ref<Node>& crossDiag1 = m_internalGrid[crossDiagR][fromC];
-	const nanogui::ref<Node>& crossDiag2 = m_internalGrid[fromR][crossDiagC];
+	const Node* const & crossDiag1 = m_internalGrid[crossDiagR][fromC];
+	const Node* const & crossDiag2 = m_internalGrid[fromR][crossDiagC];
 	if (crossDiag1->isObstructed() || crossDiag2->isObstructed())
 		return false;
 
@@ -72,16 +70,16 @@ bool Grid::areConnectable(Node* from, Node* to) const
 	return true;
 }
 
-Grid::IndexProxy::IndexProxy(const std::array<nanogui::ref<Node>, s_kGridSize>* _array) : 
-	m_array(_array) 
+Grid::IndexProxy::IndexProxy(const std::array<Node*, s_kGridSize>* _array) 
+	: m_array(_array) 
 { 
 
 }
 
-nanogui::ref<Node> Grid::IndexProxy::operator[](size_t col) const
+Node* Grid::IndexProxy::operator[](size_t col) const
 {
 	if (m_array && col < m_array->size())
 		return (*m_array)[col];
 
-	return nanogui::ref<Node>{};
+	return nullptr;
 }

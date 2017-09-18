@@ -11,11 +11,11 @@ class Node;
 
 class PathFinder : public nanogui::Window {
 public:
-	PathFinder(nanogui::Widget* parent, nanogui::ref<nanogui::Window> parentWindow);
+	PathFinder(nanogui::Widget* parent, nanogui::Window* parentWindow);
 	~PathFinder();
 
-	void setStartNode(nanogui::ref<Node> node);
-	void setEndNode(nanogui::ref<Node> node);
+	void setStartNode(Node* node);
+	void setEndNode(Node* node);
 	bool isStart(const Node* node) const;
 	bool isEnd(const Node* node) const;
 	void calculatePath();
@@ -50,9 +50,9 @@ private:
 
 	void clear();
 
-	nanogui::ref<nanogui::Window> m_parentWindow;
-	nanogui::ref<Node> m_startNode;
-	nanogui::ref<Node> m_endNode;
+	nanogui::Window* m_parentWindow;
+	Node* m_startNode;
+	Node* m_endNode;
 	Node* m_curNode;
 	Node* m_nextNode;
 	std::priority_queue<NodePriorityPair, PQContainerT, PriorityComparator> m_frontier;

@@ -30,13 +30,13 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="NavPainter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Node.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PathFinder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NavPainter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -50,9 +50,6 @@
     <ClInclude Include="Grid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NavPainter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Node.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -60,6 +57,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NavPainter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
