@@ -2,6 +2,7 @@
 #include <chrono>
 #include <thread>
 #include <math.h>
+#include <functional>
 
 #include "PathFinder.h"
 #include "Node.h"
@@ -10,6 +11,7 @@
 PathFinder::PathFinder(nanogui::Widget* parent, nanogui::ref<nanogui::Window> parentWindow)
 	: Window(parent, "")
 	, m_parentWindow{ std::move(parentWindow) }
+	, m_stopped{ true }
 {
 }
 
@@ -23,7 +25,7 @@ void PathFinder::setStartNode(nanogui::ref<Node> node)
 	if (!node)
 		return;
 
-	clear();
+	stop();
 	m_startNode = std::move(node);
 }
 
@@ -32,7 +34,7 @@ void PathFinder::setEndNode(nanogui::ref<Node> node)
 	if (!node)
 		return;
 
-	clear();
+	stop();
 	m_endNode = std::move(node);
 }
 
@@ -57,7 +59,10 @@ void PathFinder::calculatePath()
 	if (!m_startNode || !m_endNode)
 		return;
 
-	clear();
+	if (!m_stopped)
+		stop();
+
+	m_stopped = false;
 
 	// Add starting values to search graph
 	m_frontier.emplace(m_startNode, 0);
@@ -65,7 +70,7 @@ void PathFinder::calculatePath()
 	m_costSoFar[m_startNode] = 0;
 
 	m_curNode = nullptr;
-	while (!m_frontier.empty()) {
+	while (!m_frontier.empty() && !m_stopped) {
 		m_curNode = getNode(m_frontier.top());
 		m_frontier.pop();
 		
@@ -75,7 +80,7 @@ void PathFinder::calculatePath()
 		// Explore neighbor nodes
 		auto nextIt = m_curNode->getConnectionListBegin();
 		auto end = m_curNode->getConnectionListEnd();
-		for ( ; nextIt != end; ++nextIt) {
+		for ( ; nextIt != end && !m_stopped; ++nextIt) {
 			m_nextNode = *nextIt;
 			float pathCost = getLinkCost(m_curNode, m_nextNode) + m_costSoFar.at(m_curNode);
 
@@ -95,6 +100,24 @@ void PathFinder::calculatePath()
 			}
 		}
 	}
+
+	m_stopped = true;
+}
+
+void PathFinder::calculatePathAsync()
+{
+	stop();
+
+	m_future = std::async(std::bind(&PathFinder::calculatePath, this));
+}
+
+void PathFinder::stop()
+{
+	if (!m_stopped) {
+		m_stopped = true;
+		m_future.wait();
+	}
+	clear();
 }
 
 void PathFinder::clear()
@@ -211,21 +234,6 @@ bool PathFinder::mouseEnterEvent(const nanogui::Vector2i & p, bool enter)
 {
 	return false;
 }
-
-//void PathFinder::displayResults()
-//{
-//	/*for (auto nodePair : m_cameFrom) {
-//		Node* node = nodePair.first;
-//		if (node != m_startNode && node != m_endNode)
-//			node->setFillColor(nvgRGBA(0, 0, 100, 50));
-//	}*/
-//
-//	Node* curNode = m_endNode;
-//	while (curNode) {
-//		curNode->setStrokeColor(nvgRGBA(255, 255, 0, 255));
-//		curNode = m_cameFrom.at(curNode);
-//	}
-//}
 
 float PathFinder::getLinkCost(const Node* nodeSrc, const Node* nodeDst)
 {
