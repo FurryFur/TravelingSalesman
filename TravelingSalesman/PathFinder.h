@@ -1,9 +1,11 @@
 #pragma once
 
-#include <future>
+#include <condition_variable>
+#include <mutex>
 #include <utility>
 #include <queue>
 #include <unordered_map>
+#include <thread>
 
 #include <nanogui\nanogui.h>
 
@@ -20,7 +22,7 @@ public:
 	bool isEnd(const Node* node) const;
 	void calculatePath();
 	void calculatePathAsync();
-	void stop();
+	void reset();
 
 	virtual void draw(NVGcontext* ctx) override;
 	virtual void refreshRelativePlacement() override;
@@ -48,7 +50,7 @@ private:
 	void strokeNode(NVGcontext* ctx, const Node& node, const NVGcolor& color);
 	void drawGraphSegment(NVGcontext* ctx, const Node& nodeFrom, const Node& nodeTo, const NVGcolor& color);
 
-	void clear();
+	void clearState();
 
 	nanogui::Window* m_parentWindow;
 	Node* m_startNode;
@@ -58,6 +60,8 @@ private:
 	std::priority_queue<NodePriorityPair, PQContainerT, PriorityComparator> m_frontier;
 	std::unordered_map<Node*, Node*> m_cameFrom;
 	std::unordered_map<Node*, float> m_costSoFar;
-	std::future<void> m_future;
+	//std::future<void> m_future;
 	bool m_stopped;
+	std::mutex m_mutex;
+	std::thread m_processingThread;
 };

@@ -58,7 +58,7 @@ void NavPainter::setCurrentBrush(BrushType brush)
 
 void NavPainter::paintObstacle(Node& node)
 {
-	m_pathFinder.stop();
+	m_pathFinder.reset();
 	node.setObstructed(true);
 
 	// Remove cardinal nodes' diagonal connections around this node
@@ -78,7 +78,7 @@ void NavPainter::paintObstacle(Node& node)
 
 void NavPainter::clearObstacle(Node& node)
 {
-	m_pathFinder.stop();
+	m_pathFinder.reset();
 	node.setObstructed(false);
 
 	// Reconnect the now unobstructed node

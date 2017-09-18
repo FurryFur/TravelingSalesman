@@ -1,6 +1,5 @@
 #include <vector>
 #include <chrono>
-#include <thread>
 #include <math.h>
 #include <functional>
 
@@ -18,6 +17,10 @@ PathFinder::PathFinder(nanogui::Widget* parent, nanogui::Window* parentWindow)
 
 PathFinder::~PathFinder()
 {
+	if (m_processingThread.joinable()) {
+		m_stopped = true;
+		m_processingThread.join();
+	}
 }
 
 void PathFinder::setStartNode(Node* node)
@@ -25,7 +28,11 @@ void PathFinder::setStartNode(Node* node)
 	if (!node)
 		return;
 
-	stop();
+	// Stop processing
+	m_stopped = true;
+	std::lock_guard<std::mutex> lock{ m_mutex };
+
+	clearState();
 	m_startNode = node;
 }
 
@@ -34,7 +41,11 @@ void PathFinder::setEndNode(Node* node)
 	if (!node)
 		return;
 
-	stop();
+	// Stop processing
+	m_stopped = true;
+	std::lock_guard<std::mutex> lock{ m_mutex };
+
+	clearState();
 	m_endNode = node;
 }
 
@@ -56,13 +67,17 @@ bool PathFinder::isEnd(const Node * node) const
 
 void PathFinder::calculatePath()
 {
+	// Stop any existing processing
+	m_stopped = true;
+	std::lock_guard<std::mutex> lock{ m_mutex };
+
 	if (!m_startNode || !m_endNode)
 		return;
 
-	if (!m_stopped)
-		stop();
-
 	m_stopped = false;
+
+	// Clear results of previous calculations
+	clearState();
 
 	// Add starting values to search graph
 	m_frontier.emplace(m_startNode, 0);
@@ -106,21 +121,22 @@ void PathFinder::calculatePath()
 
 void PathFinder::calculatePathAsync()
 {
-	stop();
-
-	m_future = std::async(std::bind(&PathFinder::calculatePath, this));
-}
-
-void PathFinder::stop()
-{
-	if (!m_stopped) {
+	if (m_processingThread.joinable()) {
 		m_stopped = true;
-		m_future.wait();
+		m_processingThread.join();
 	}
-	clear();
+
+	m_processingThread = std::thread(std::bind(&PathFinder::calculatePath, this));
 }
 
-void PathFinder::clear()
+void PathFinder::reset()
+{
+	m_stopped = true;
+	std::lock_guard<std::mutex> lock{ m_mutex };
+	clearState();
+}
+
+void PathFinder::clearState()
 {
 	m_curNode = nullptr;
 	m_nextNode = nullptr;
