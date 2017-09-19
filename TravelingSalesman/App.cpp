@@ -3,13 +3,14 @@
 #include "App.h"
 #include "Node.h"
 #include "CustomButton.h"
+#include "Canvas.h"
+#include "PathFinder.h"
 
 using namespace nanogui;
 
 AStarApp::AStarApp()
 	: Screen(Vector2i(1500, 850), "AStar")
 	, m_modulation{ 5 }
-	, m_grid{}
 {
 	/**
 	* Add a window.
@@ -28,37 +29,12 @@ AStarApp::AStarApp()
 
 	Window* window2 = new Window(this, "");
 	window2->setPosition({ 100, 15 });
-	window2->setLayout(new GridLayout(Orientation::Horizontal, Node::s_kGridSize));
+	window2->setSize({ 800, 800 });
 
-	// Instantiate path finder and its UI components
+	// Init main display
 	auto pathFinder = new PathFinder(this, window2);
-	m_navPainter = std::make_unique<NavPainter>(m_grid, *pathFinder);
-
-	// Create pathing nodes
-	for (size_t i = 0; i < Node::s_kGridSize; ++i) {
-		for (size_t j = 0; j < Node::s_kGridSize; ++j) {
-			auto node = new Node(window2, *m_navPainter, i, j);
-			node->setFixedSize({ 50, 50 });
-			m_grid.setGridNode(i, j, node);
-		}
-	}
-	
-	// Add connections to nodes
-	for (size_t r = 0; r < Node::s_kGridSize; ++r) {
-		for (size_t c = 0; c < Node::s_kGridSize; ++c) {
-			for (int relR = -1; relR <= 1; ++relR) {
-				for (int relC = -1; relC <= 1; ++relC) {
-					if (relR == 0 && relC == 0)
-						continue;
-
-					size_t connRow = r + relR;
-					size_t connCol = c + relC;
-
-					Node::connect(m_grid[r][c], m_grid[connRow][connCol]);
-				}
-			}
-		}
-	}
+	auto canvas = new Canvas(window2, *pathFinder);
+	canvas->setSize(window2->size());
 
 	// Setup the simulate button
 	Window* window3 = new Window(this, "");
@@ -75,22 +51,6 @@ AStarApp::AStarApp()
 	Window* toolsWindow = new Window(this, "Brush");
 	toolsWindow->setPosition({ 907, 15 });
 	toolsWindow->setLayout(new GroupLayout());
-	auto placeStartTool = new CustomButton(toolsWindow, "Start");
-	placeStartTool->setPushed(true);
-	placeStartTool->setFlags(Button::RadioButton);
-	placeStartTool->setCallback([this]() {
-		m_navPainter->setCurrentBrush(NavPainter::BrushType::Start);
-	});
-	auto placeEndTool = new CustomButton(toolsWindow, "End");
-	placeEndTool->setFlags(Button::RadioButton);
-	placeEndTool->setCallback([this]() {
-		m_navPainter->setCurrentBrush(NavPainter::BrushType::End);
-	});
-	auto placeObstruction = new CustomButton(toolsWindow, "Obstacle");
-	placeObstruction->setFlags(Button::RadioButton);
-	placeObstruction->setCallback([this]() {
-		m_navPainter->setCurrentBrush(NavPainter::BrushType::Obstacle);
-	});
 
 	// Do the layout calculations based on what was added to the GUI
 	performLayout();

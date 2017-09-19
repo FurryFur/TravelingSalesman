@@ -1,20 +1,25 @@
 #include <algorithm>
+#ifdef _DEBUG
+#include <iostream>
+#endif // _DEBUG
 
 #include "Node.h"
-#include "Grid.h"
-#include "NavPainter.h"
 
 using namespace nanogui;
 
 const float Node::s_kBorderWidth = 4;
 
-Node::Node(Window* window, NavPainter& navPainter, size_t row, size_t col)
-	: Widget(window)
-	, m_navPainter{ navPainter }
-	, m_row{ row }
-	, m_col{ col }
-	, m_obstructed{ false }
+Node::Node(Widget* parent)
+	: Widget(parent)
 {
+	mSize = { 10, 10 };
+}
+
+Node::~Node()
+{
+#ifdef _DEBUG
+	std::cout << "Node deleted" << std::endl;
+#endif // _DEBUG
 }
 
 void Node::draw(NVGcontext* ctx)
@@ -48,84 +53,39 @@ void Node::draw(NVGcontext* ctx)
 		nvgStroke(ctx);
 	}
 
-	// Draw obstructions
-	if (m_obstructed) {
-		nvgBeginPath(ctx);
-		nvgRect(ctx, 
-		        static_cast<float>(mPos.x() + s_kBorderWidth / 2),
-		        static_cast<float>(mPos.y() + s_kBorderWidth / 2),
-		        static_cast<float>(mSize.x() - s_kBorderWidth),
-		        static_cast<float>(mSize.y() - s_kBorderWidth));
-		nvgFillColor(ctx, nvgRGBA(255, 0, 0, 255));
-		nvgFill(ctx);
-	}
-
 	nvgRestore(ctx);
 
 	Widget::draw(ctx);
 }
 
-bool Node::mouseButtonEvent(const Vector2i& p, int button, bool down, int modifiers)
+void Node::setCallback(CallbackT callback)
 {
-	if ((button == GLFW_MOUSE_BUTTON_1 || button == GLFW_MOUSE_BUTTON_2) && down) {
-		m_navPainter.paintEvent(button, this);
+	m_callback = callback;
+}
 
+bool Node::mouseButtonEvent(const nanogui::Vector2i & p, int button, bool down, int modifiers)
+{
+	Widget::mouseButtonEvent(p, button, down, modifiers);
+	if (m_callback)
+		m_callback(p, button, down, modifiers);
+	return true; // Prevent further propogation
+}
+
+bool Node::mouseDragEvent(const Vector2i& p, const Vector2i& rel, int buttonState, int modifiers)
+{
+	if (buttonState & 0x1) { // Not GLFW mouse button apparently (seems to have 1 bit set, going from right to left, for each mouse button pressed)
+		mPos += rel;
 		return true;
 	}
 
-	return Widget::mouseButtonEvent(p, button, down, modifiers);
-}
-
-bool Node::mouseEnterEvent(const Vector2i& p, bool enter)
-{
-	if (enter) {
-		int button1State = glfwGetMouseButton(this->screen()->glfwWindow(), GLFW_MOUSE_BUTTON_1);
-		int button2State = glfwGetMouseButton(this->screen()->glfwWindow(), GLFW_MOUSE_BUTTON_2);
-
-		if (button1State == GLFW_PRESS)
-			return m_navPainter.paintEvent(GLFW_MOUSE_BUTTON_1, this);
-		if (button2State == GLFW_PRESS)
-			return m_navPainter.paintEvent(GLFW_MOUSE_BUTTON_2, this);
-	}
-
-	return Widget::mouseEnterEvent(p, enter);
-}
-
-size_t Node::getRow() const
-{
-	return m_row;
-}
-
-size_t Node::getCol() const
-{
-	return m_col;
-}
-
-nanogui::Vector2i Node::getPos() const
-{
-	return absolutePosition();
-}
-
-nanogui::Vector2i Node::getSize() const
-{
-	return mSize;
-}
-
-void Node::setObstructed(bool isObstructed)
-{
-	m_obstructed = isObstructed;
-}
-
-bool Node::isObstructed() const
-{
-	return m_obstructed;
+	return false;
 }
 
 bool Node::connect(Node* node1, Node* node2)
 {
 	if (!node1 || !node2)
 		return false;
-
+	
 	return node1->connect(node2);
 }
 

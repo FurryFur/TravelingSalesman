@@ -5,8 +5,8 @@
 int main() {
 	nanogui::init();
 
-	AStarApp app;
-	app.setVisible(true);
+	nanogui::ref<AStarApp> app = new AStarApp;
+	app->setVisible(true);
 
 	nanogui::mainloop();
 
