@@ -18,41 +18,37 @@ public:
 	virtual void draw(NVGcontext* ctx) override;
 
 	using CallbackT = std::function<void(const nanogui::Vector2i& p, int button, bool down, int modifiers)>;
+	using DragCallbackT = std::function<void(const nanogui::Vector2i& p, const nanogui::Vector2i& rel, int buttonState, int modifiers)>;
 
 	void setCallback(CallbackT callback);
+	void setDragCallback(DragCallbackT callback);
 	virtual bool mouseButtonEvent(const nanogui::Vector2i& p, int button, bool down, int modifiers) override;
 	virtual bool mouseDragEvent(const nanogui::Vector2i& p, const nanogui::Vector2i& rel, int button, int modifiers) override;
 
-	// Adds a pathing connection to the specified node.
-	// Returns true if a new connection was made.
-	// Returns false if the connection already exists or the specified node is null.
-	bool connect(Node* node);
+	// Not a virtual function, be careful calling this.
+	// Needs to be called on a pointer or reference of type Node.
+	// Used to set the position in floating point as well as normal integers.
+	// Floating point versions are precalculated here for efficiency
+	void setPosition(const nanogui::Vector2i& pos);
 
-	// Adds a pathing connection between the specified nodes.
-	// Returns true if a new connection was made.
-	// Returns false if the connection already exists or either of the specified nodes are null.
-	static bool connect(Node* node1, Node* node2);
+	// Not a virtual function, be careful calling this.
+	// Needs to be called on a pointer or reference of type Node.
+	// Used to set the size in floating point as well as normal integers.
+	// Floating point versions are precalculated here for efficiency
+	void setSize(const nanogui::Vector2i& size);
 
-	// Removes the pathing connection to the specified node.
-	// Returns false if no connection was found or specified node was null.
-	bool removeConnection(Node* node);
+	// Returns the absolute position of the node as a floating point type (Vector2f).
+	// Used to avoid casting for efficiency.
+	nanogui::Vector2f getFloatPos() const;
 
-	// Removes the pathing connection between specified nodes.
-	// Returns false if no connection was found or either of the specified nodes are null.
-	static bool removeConnection(Node* node1, Node* node2);
-
-	// Removes the pathing connection to specified node via an iterator.
-	// Returns an iterator pointing to the connection following the one that was removed.
-	std::list<Node*>::iterator removeConnection(std::list<Node*>::iterator nodeIt);
-
-	// Returns an iterator pointing to the beginning of the connection list
-	std::list<Node*>::iterator getConnectionListBegin();
-
-	// Returns an iterator point to the end of the connection list
-	std::list<Node*>::iterator getConnectionListEnd();
+	// Returns the size of the node as a floating point type (Vector2f).
+	// Used to avoid casting for efficiency.
+	nanogui::Vector2f getFloatSize() const;
 
 	static const float s_kBorderWidth;
 private:
-	std::list<Node*> m_connections;
+	nanogui::Vector2f m_floatPos;
+	nanogui::Vector2f m_floatSize;
 	CallbackT m_callback;
+	DragCallbackT m_dragCallback;
 };

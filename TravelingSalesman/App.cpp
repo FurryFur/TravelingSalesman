@@ -38,7 +38,7 @@ AStarApp::AStarApp()
 
 	// Setup the simulate button
 	Window* window3 = new Window(this, "");
-	window3->setPosition({ 920, 685 });
+	window3->setPosition({ 920, 500 });
 	window3->setLayout(new GroupLayout());
 	auto button = new Button(window3, "SIMULATE");
 	button->setBackgroundColor(Color(255, 0, 0, 1));
@@ -47,10 +47,16 @@ AStarApp::AStarApp()
 		pathFinder->calculatePathAsync();
 	});
 
-	// Setup brush pallet
-	Window* toolsWindow = new Window(this, "Brush");
-	toolsWindow->setPosition({ 907, 15 });
-	toolsWindow->setLayout(new GroupLayout());
+	// Setup stop
+	Window* window4 = new Window(this, "");
+	window4->setPosition({ 920, 685 });
+	window4->setLayout(new GroupLayout());
+	button = new Button(window4, "STOP");
+	button->setBackgroundColor(Color(255, 0, 0, 1));
+	button->setFixedSize({ 500, 100 });
+	button->setCallback([pathFinder]() {
+		pathFinder->stop();
+	});
 
 	// Do the layout calculations based on what was added to the GUI
 	performLayout();

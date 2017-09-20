@@ -3,6 +3,10 @@
 #include <math.h>
 #include <functional>
 #include <algorithm>
+#ifdef _DEBUG
+#include <iostream>
+#endif // _DEBUG
+
 
 #include "PathFinder.h"
 #include "Node.h"
@@ -13,68 +17,103 @@ PathFinder::PathFinder(nanogui::Widget* parent, nanogui::Window* parentWindow)
 	: Window(parent, "")
 	, m_parentWindow{ parentWindow }
 	, m_stopped{ true }
-	, m_traversalList{ std::make_unique<std::vector<Node*>>() }
+	, m_path{}
 {
 }
 
 
 PathFinder::~PathFinder()
 {
-	if (m_processingThread.joinable()) {
-		m_stopped = true;
-		m_processingThread.join();
-	}
+	stop();
 }
 
-void PathFinder::addNode(Node * node)
+void PathFinder::addNode(Node* node)
 {
-	m_stopped = true;
-	std::lock_guard<std::mutex> lock{ m_mutex };
+	stop();
 
-	m_traversalList->push_back(node);
+	std::lock_guard<std::mutex> lock{ m_mutex };
+	m_path.push_back(node);
 }
 
-void PathFinder::removeNode(Node* deleteNode)
+void PathFinder::removeNode(Node* node)
 {
-	m_stopped = true;
-	std::lock_guard<std::mutex> lock{ m_mutex };
+	stop();
 
-	m_traversalList->erase(
-		std::remove_if(
-			m_traversalList->begin(),
-			m_traversalList->end(),
-			[deleteNode](Node* node) {
-				return node == deleteNode;
-	}));
+	std::lock_guard<std::mutex> lock{ m_mutex };
+	unordered_erase(
+		m_path,
+		std::find(
+			m_path.begin(),
+			m_path.end(),
+			node));
 }
 
 void PathFinder::calculatePath()
 {
-	// Stop any existing processing
-	m_stopped = true;
-	std::lock_guard<std::mutex> lock{ m_mutex };
-
 	m_stopped = false;
-	m_newOrder = std::make_unique<std::vector<Node*>>(*m_traversalList);
+	std::vector<Node*> newPath = m_path;
+	float bestPathLength = calculatePathLength(newPath);
 
-	auto it1 = select_randomly(m_newOrder->begin(), m_newOrder->end());
-	auto it2 = select_randomly(m_newOrder->begin(), m_newOrder->end());
-	std::swap(*it1, *it2);
+#ifdef _DEBUG
+	std::cout << "Pathing started" << std::endl;
+#endif // _DEBUG
 
-	std::lock_guard<std::mutex> listLock(m_listMutex);
-	std::swap(m_traversalList, m_newOrder);
+
+	// Loop until stopped
+	while (!m_stopped) {
+		// Try swapping two nodes on the path
+		auto it1 = select_randomly(newPath.begin(), newPath.end());
+		auto it2 = select_randomly(newPath.begin(), newPath.end());
+		std::swap(*it1, *it2);
+
+		// Test if the new path length is better
+		float newPathLength = calculatePathLength(newPath);
+		if (newPathLength < bestPathLength) {
+			// Update main path if better
+			bestPathLength = newPathLength;
+			size_t i = it1 - newPath.begin();
+			size_t j = it2 - newPath.begin();
+
+			std::unique_lock<std::mutex> lock(m_mutex);
+			std::swap(m_path.at(i), m_path.at(j));
+			lock.unlock();
+		} else {
+			// Undo changes if not
+			std::swap(*it1, *it2);
+		}
+	}
 
 	m_stopped = true;
 }
 
 void PathFinder::calculatePathAsync()
 {
-	if (m_processingThread.joinable()) {
-		m_stopped = true;
-		m_processingThread.join();
-	}
+	stop();
 
 	m_processingThread = std::thread(std::bind(&PathFinder::calculatePath, this));
+}
+
+bool PathFinder::stop()
+{
+	if (!m_stopped) {
+		m_stopped = true;
+		if (m_processingThread.joinable()) {
+			m_processingThread.join();
+		}
+
+#ifdef _DEBUG
+		std::cout << "Pathing stopped" << std::endl;
+#endif // _DEBUG
+
+		return true;
+	}
+
+	return false;
+}
+
+bool PathFinder::isStopped()
+{
+	return m_stopped;
 }
 
 void PathFinder::fillNode(NVGcontext* ctx, const Node& node, const NVGcolor& color)
@@ -108,13 +147,11 @@ void PathFinder::drawGraphSegment(NVGcontext* ctx, const Node& nodeFrom, const N
 	nvgStrokeColor(ctx, color);
 	nvgBeginPath(ctx);
 	// Move to center of node
-	float startX = nodeFrom.absolutePosition().x() + nodeFrom.size().x() / 2.0f;
-	float startY = nodeFrom.absolutePosition().y() + nodeFrom.size().y() / 2.0f;
-	nvgMoveTo(ctx, startX, startY);
+	nanogui::Vector2f start = nodeFrom.getFloatPos() + nodeFrom.getFloatSize() / 2;
+	nvgMoveTo(ctx, start.x(), start.y());
 	// Draw to center of connected node
-	float endX = nodeTo.absolutePosition().x() + nodeTo.size().x() / 2.0f;
-	float endY = nodeTo.absolutePosition().y() + nodeTo.size().y() / 2.0f;
-	nvgLineTo(ctx, endX, endY);
+	nanogui::Vector2f end = nodeTo.getFloatPos() + nodeTo.getFloatSize() / 2;
+	nvgLineTo(ctx, end.x(), end.y());
 	nvgStroke(ctx);
 }
 
@@ -122,10 +159,10 @@ void PathFinder::draw(NVGcontext* ctx)
 {
 	refreshRelativePlacement();
 
-	std::lock_guard<std::mutex> lock{ m_listMutex };
-	for (size_t i = 0; m_traversalList && i < m_traversalList->size(); ++i) {
-		Node& nodeFrom = *m_traversalList->at(i);
-		Node& nodeTo = *m_traversalList->at((i + 1) % m_traversalList->size());
+	std::lock_guard<std::mutex> lock{ m_mutex };
+	for (size_t i = 0; i < m_path.size(); ++i) {
+		Node& nodeFrom = *m_path.at(i);
+		Node& nodeTo = *m_path.at((i + 1) % m_path.size());
 		drawGraphSegment(ctx, nodeFrom, nodeTo, nvgRGBA(255, 255, 255, 255));
 	}
 }
@@ -138,37 +175,30 @@ void PathFinder::refreshRelativePlacement()
 	}
 }
 
-bool PathFinder::mouseButtonEvent(const nanogui::Vector2i & p, int button, bool down, int modifiers)
+bool PathFinder::mouseButtonEvent(const nanogui::Vector2i& p, int button, bool down, int modifiers)
 {
 	return false;
 }
 
-bool PathFinder::mouseEnterEvent(const nanogui::Vector2i & p, bool enter)
+bool PathFinder::mouseEnterEvent(const nanogui::Vector2i& p, bool enter)
 {
 	return false;
 }
 
-float PathFinder::getLinkCost(const Node* nodeSrc, const Node* nodeDst)
+float PathFinder::euclideanDistSquared(const Node& nodeSrc, const Node& nodeDst)
 {
-	if (!nodeSrc || !nodeDst)
-		return 0;
-
-	return euclideanDist(*nodeSrc, *nodeDst);
+	nanogui::Vector2f displacement = nodeDst.getFloatPos() - nodeSrc.getFloatPos();
+	return displacement.dot(displacement);
 }
 
-float PathFinder::heuristic(const Node& nodeSrc, const Node& nodeDst)
+float PathFinder::calculatePathLength(const std::vector<Node*>& traversalList)
 {
-	return euclideanDist(nodeSrc, nodeDst);
-}
+	float accumDist = 0;
+	for (size_t i = 0; i < traversalList.size(); ++i) {
+		Node& nodeFrom = *traversalList[i];
+		Node& nodeto = *traversalList[(i + 1) % traversalList.size()];
+		accumDist += euclideanDistSquared(nodeFrom, nodeto);
+	}
 
-float PathFinder::manhattanDist(const Node& nodeSrc, const Node& nodeDst)
-{
-	return std::abs(static_cast<float>(nodeDst.absolutePosition().x()) - static_cast<float>(nodeSrc.size().x()))
-	     + std::abs(static_cast<float>(nodeDst.absolutePosition().y()) - static_cast<float>(nodeSrc.size().y()));
-}
-
-float PathFinder::euclideanDist(const Node& nodeSrc, const Node& nodeDst)
-{
-	return sqrt(std::pow(static_cast<float>(nodeDst.absolutePosition().x()) - static_cast<float>(nodeSrc.size().x()), 2)
-	          + std::pow(static_cast<float>(nodeDst.absolutePosition().y()) - static_cast<float>(nodeSrc.size().y()), 2));
+	return accumDist;
 }

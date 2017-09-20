@@ -22,6 +22,12 @@ public:
 	void calculatePath();
 	void calculatePathAsync();
 
+	// Returns true if pathing had to be halted.
+	// Returns false if pathing was not calculating.
+	bool stop();
+
+	bool isStopped();
+
 	virtual void draw(NVGcontext* ctx) override;
 	virtual void refreshRelativePlacement() override;
 
@@ -30,21 +36,17 @@ public:
 	virtual bool mouseEnterEvent(const nanogui::Vector2i& p, bool enter) override;
 	
 private:
-	static float getLinkCost(const Node*, const Node*);
-	static float heuristic(const Node&, const Node&);
-	static float manhattanDist(const Node&, const Node&);
-	static float euclideanDist(const Node&, const Node&);
+	static float euclideanDistSquared(const Node&, const Node&);
+	static float calculatePathLength(const std::vector<Node*>&);
 
 	void fillNode(NVGcontext* ctx, const Node& node, const NVGcolor& color);
 	void strokeNode(NVGcontext* ctx, const Node& node, const NVGcolor& color);
 	void drawGraphSegment(NVGcontext* ctx, const Node& nodeFrom, const Node& nodeTo, const NVGcolor& color);
 
 	nanogui::Window* m_parentWindow;
-	std::unique_ptr<std::vector<Node*>> m_traversalList;
-	std::unique_ptr<std::vector<Node*>> m_newOrder;
+	std::vector<Node*> m_path;
 	//std::future<void> m_future;
 	bool m_stopped;
 	std::mutex m_mutex;
-	std::mutex m_listMutex;
 	std::thread m_processingThread;
 };
