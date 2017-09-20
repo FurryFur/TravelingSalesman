@@ -30,11 +30,12 @@ AStarApp::AStarApp()
 	Window* window2 = new Window(this, "");
 	window2->setPosition({ 100, 15 });
 	window2->setSize({ 800, 800 });
+	window2->setId("Main Window");
 
 	// Init main display
-	auto pathFinder = new PathFinder(this, window2);
-	auto canvas = new Canvas(window2, *pathFinder);
+	auto canvas = new Canvas(window2, m_pathFinder);
 	canvas->setSize(window2->size());
+	canvas->setId("Canvas");
 
 	// Setup the simulate button
 	Window* window3 = new Window(this, "");
@@ -43,8 +44,8 @@ AStarApp::AStarApp()
 	auto button = new Button(window3, "SIMULATE");
 	button->setBackgroundColor(Color(255, 0, 0, 1));
 	button->setFixedSize({ 500, 100 });
-	button->setCallback([pathFinder]() {
-		pathFinder->calculatePathAsync();
+	button->setCallback([this]() {
+		m_pathFinder.calculatePathAsync();
 	});
 
 	// Setup stop
@@ -54,8 +55,8 @@ AStarApp::AStarApp()
 	button = new Button(window4, "STOP");
 	button->setBackgroundColor(Color(255, 0, 0, 1));
 	button->setFixedSize({ 500, 100 });
-	button->setCallback([pathFinder]() {
-		pathFinder->stop();
+	button->setCallback([this]() {
+		m_pathFinder.stop();
 	});
 
 	// Do the layout calculations based on what was added to the GUI
@@ -112,4 +113,18 @@ void AStarApp::draw(NVGcontext * ctx)
 	//nvgFill(ctx);
 
 	Screen::draw(ctx);
+
+#ifdef _DEBUG
+	if (mFocusPath.size() > 0) {
+		nvgFontFace(ctx, "sans");
+		nvgFontSize(ctx, fontSize());
+		nvgFillColor(ctx, nvgRGBA(255, 255, 255, 255));
+		nvgTextAlign(ctx, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
+		std::string distText = "Focus: " + mFocusPath.at(0)->id();
+		for (size_t i = 1; i < mFocusPath.size(); ++i) {
+			distText += " -> " + mFocusPath[i]->id();
+		}
+		nvgText(ctx, mPos.x(), mPos.y(), distText.c_str(), nullptr);
+	}
+#endif // _DEBUG
 }

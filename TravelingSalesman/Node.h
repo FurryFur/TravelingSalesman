@@ -26,7 +26,7 @@ public:
 	virtual bool mouseDragEvent(const nanogui::Vector2i& p, const nanogui::Vector2i& rel, int button, int modifiers) override;
 
 	// Not a virtual function, be careful calling this.
-	// Needs to be called on a pointer or reference of type Node.
+	// Needs to be called on a pointer or reference to type Node.
 	// Used to set the position in floating point as well as normal integers.
 	// Floating point versions are precalculated here for efficiency
 	void setPosition(const nanogui::Vector2i& pos);
@@ -37,7 +37,7 @@ public:
 	// Floating point versions are precalculated here for efficiency
 	void setSize(const nanogui::Vector2i& size);
 
-	// Returns the absolute position of the node as a floating point type (Vector2f).
+	// Returns the position of the node as a floating point type (Vector2f).
 	// Used to avoid casting for efficiency.
 	nanogui::Vector2f getFloatPos() const;
 

@@ -21,4 +21,5 @@ public:
 private:
 	nanogui::GLShader m_shader;
 	float m_modulation;
+	PathFinder m_pathFinder;
 };

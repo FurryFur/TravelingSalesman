@@ -72,7 +72,7 @@ bool Node::mouseDragEvent(const Vector2i& p, const Vector2i& rel, int buttonStat
 void Node::setPosition(const Vector2i& pos)
 {
 	Widget::setPosition(pos);
-	m_floatPos = absolutePosition().cast<float>();
+	m_floatPos = mPos.cast<float>();
 }
 
 void Node::setSize(const nanogui::Vector2i& size)

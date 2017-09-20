@@ -66,3 +66,10 @@ bool Canvas::mouseButtonEvent(const nanogui::Vector2i & p, int button, bool down
 
 	return handled;
 }
+
+void Canvas::draw(NVGcontext * ctx)
+{
+	Widget::draw(ctx);
+
+	m_pathFinder.draw(ctx);
+}

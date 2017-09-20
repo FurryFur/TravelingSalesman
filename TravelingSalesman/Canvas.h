@@ -13,6 +13,8 @@ public:
 	virtual ~Canvas();
 
 	virtual bool mouseButtonEvent(const nanogui::Vector2i& p, int button, bool down, int modifiers) override;
+	virtual void draw(NVGcontext* ctx) override;
+
 	std::vector<Node*> nodes;
 	PathFinder& m_pathFinder;
 };
