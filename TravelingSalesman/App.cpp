@@ -59,6 +59,22 @@ AStarApp::AStarApp()
 		m_pathFinder.stop();
 	});
 
+	// Setup mode select
+	Window* modeWindow = new Window(this, "Mode");
+	modeWindow->setPosition({ 907, 15 });
+	modeWindow->setLayout(new GroupLayout());
+	auto hillClimbingBtn = new CustomButton(modeWindow, "Hill Climbing");
+	hillClimbingBtn->setPushed(true);
+	hillClimbingBtn->setFlags(Button::RadioButton);
+	hillClimbingBtn->setCallback([this]() {
+		m_pathFinder.setMode(PathFinder::Mode::HillClimbing);
+	});
+	auto annealingBtn = new CustomButton(modeWindow, "Simulated Annealing");
+	annealingBtn->setFlags(Button::RadioButton);
+	annealingBtn->setCallback([this]() {
+		m_pathFinder.setMode(PathFinder::Mode::Anealing);
+	});
+
 	// Do the layout calculations based on what was added to the GUI
 	performLayout();
 
@@ -113,18 +129,4 @@ void AStarApp::draw(NVGcontext * ctx)
 	//nvgFill(ctx);
 
 	Screen::draw(ctx);
-
-#ifdef _DEBUG
-	if (mFocusPath.size() > 0) {
-		nvgFontFace(ctx, "sans");
-		nvgFontSize(ctx, fontSize());
-		nvgFillColor(ctx, nvgRGBA(255, 255, 255, 255));
-		nvgTextAlign(ctx, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
-		std::string distText = "Focus: " + mFocusPath.at(0)->id();
-		for (size_t i = 1; i < mFocusPath.size(); ++i) {
-			distText += " -> " + mFocusPath[i]->id();
-		}
-		nvgText(ctx, mPos.x(), mPos.y(), distText.c_str(), nullptr);
-	}
-#endif // _DEBUG
 }

@@ -25,7 +25,7 @@ bool Canvas::mouseButtonEvent(const nanogui::Vector2i & p, int button, bool down
 				bool restart = m_pathFinder.stop();
 
 				m_pathFinder.removeNode(node);
-				removeChild(i);
+				removeChild(static_cast<int>(i));
 
 				if (restart)
 					m_pathFinder.calculatePathAsync();

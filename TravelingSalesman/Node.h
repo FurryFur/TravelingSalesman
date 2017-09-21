@@ -4,6 +4,7 @@
 #include <memory>
 #include <functional>
 
+#include <Eigen\Dense>
 #include <nanogui\nanogui.h>
 
 class Grid;
@@ -37,18 +38,18 @@ public:
 	// Floating point versions are precalculated here for efficiency
 	void setSize(const nanogui::Vector2i& size);
 
-	// Returns the position of the node as a floating point type (Vector2f).
+	// Returns the position of the node as a floating point type (Vector2d).
 	// Used to avoid casting for efficiency.
-	nanogui::Vector2f getFloatPos() const;
+	Eigen::Vector2d getFloatPos() const;
 
-	// Returns the size of the node as a floating point type (Vector2f).
+	// Returns the size of the node as a floating point type (Vector2d).
 	// Used to avoid casting for efficiency.
-	nanogui::Vector2f getFloatSize() const;
+	Eigen::Vector2d getFloatSize() const;
 
 	static const float s_kBorderWidth;
 private:
-	nanogui::Vector2f m_floatPos;
-	nanogui::Vector2f m_floatSize;
+	Eigen::Vector2d m_floatPos;
+	Eigen::Vector2d m_floatSize;
 	CallbackT m_callback;
 	DragCallbackT m_dragCallback;
 };

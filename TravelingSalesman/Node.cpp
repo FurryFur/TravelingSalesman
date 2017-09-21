@@ -69,24 +69,24 @@ bool Node::mouseDragEvent(const Vector2i& p, const Vector2i& rel, int buttonStat
 	return false;
 }
 
-void Node::setPosition(const Vector2i& pos)
+void Node::setPosition(const nanogui::Vector2i& pos)
 {
 	Widget::setPosition(pos);
-	m_floatPos = mPos.cast<float>();
+	m_floatPos = mPos.cast<double>();
 }
 
 void Node::setSize(const nanogui::Vector2i& size)
 {
 	Widget::setSize(size);
-	m_floatSize = mSize.cast<float>();
+	m_floatSize = mSize.cast<double>();
 }
 
-nanogui::Vector2f Node::getFloatPos() const
+Eigen::Vector2d Node::getFloatPos() const
 {
 	return m_floatPos;
 }
 
-nanogui::Vector2f Node::getFloatSize() const
+Eigen::Vector2d Node::getFloatSize() const
 {
 	return m_floatSize;
 }
