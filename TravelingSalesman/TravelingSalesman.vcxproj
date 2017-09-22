@@ -61,7 +61,7 @@
     </Link>
     <PostBuildEvent>
       <Command>copy /y "$(ProjectDir)Dependencies\lib\nanogui_d.dll" "$(OutDir)nanogui.dll"
-xcopy /y "$(ProjectDir)Shaders\*.glsl" "$(OutDir)"</Command>
+xcopy /y "$(ProjectDir)Shaders\*.glsl" "$(OutDir)Shaders\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -80,7 +80,7 @@ xcopy /y "$(ProjectDir)Shaders\*.glsl" "$(OutDir)"</Command>
     </Link>
     <PostBuildEvent>
       <Command>copy /y "$(ProjectDir)Dependencies\lib\nanogui.dll" "$(OutDir)nanogui.dll"
-xcopy /y "$(ProjectDir)Shaders\*.glsl" "$(OutDir)"</Command>
+xcopy /y "$(ProjectDir)Shaders\*.glsl" "$(OutDir)Shaders\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
