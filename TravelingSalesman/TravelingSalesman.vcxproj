@@ -60,7 +60,8 @@
       <AdditionalDependencies>opengl32.lib;nanogui_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /y "$(ProjectDir)Dependencies\lib\nanogui_d.dll" "$(OutDir)nanogui.dll"</Command>
+      <Command>copy /y "$(ProjectDir)Dependencies\lib\nanogui_d.dll" "$(OutDir)nanogui.dll"
+xcopy /y "$(ProjectDir)Shaders\*.glsl" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -78,7 +79,8 @@
       <AdditionalDependencies>opengl32.lib;nanogui.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /y "$(ProjectDir)Dependencies\lib\nanogui.dll" "$(OutDir)nanogui.dll"</Command>
+      <Command>copy /y "$(ProjectDir)Dependencies\lib\nanogui.dll" "$(OutDir)nanogui.dll"
+xcopy /y "$(ProjectDir)Shaders\*.glsl" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

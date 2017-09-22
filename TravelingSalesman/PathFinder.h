@@ -32,6 +32,16 @@ public:
 	void calculatePathAsync();
 	void setMode(Mode mode);
 
+	// Sets the temperature decay per second, expressed as a percentage of the 
+	// current temperature.
+	// E.g. 0.5 would be a 50% decrease in temperature per second.
+	void setTemperatureDecay(double tempDecay);
+
+	// Gets the temperature decay per second, expressed as a percentage of the 
+	// current temperature.
+	// E.g. 0.5 would be a 50% decrease in temperature per second.
+	double getTemperatureDecay();
+
 	// Returns true if pathing had to be halted.
 	// Returns false if pathing was not calculating.
 	bool stop();
@@ -49,14 +59,14 @@ private:
 	void drawGraphSegment(NVGcontext* ctx, const Node& nodeFrom, const Node& nodeTo, const NVGcolor& color);
 
 	static const double s_kStartingTemperature;
-	static const double s_kPercentDTempPerSecond;
 
 	std::vector<Node*> m_path;
 	double m_pathLength;
 	double m_temperature;
+	double m_tempDecay;
 	bool m_stopped;
 	double m_pathsPerSecond;
-	double m_avgAcceptanceProbability;
+	double m_avgAcceptanceProb;
 	std::mutex m_mutex;
 	std::thread m_processingThread;
 	Mode m_mode;

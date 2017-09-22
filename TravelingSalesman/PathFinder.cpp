@@ -16,7 +16,6 @@
 #include "Utils.h"
 
 const double PathFinder::s_kStartingTemperature = 1000;
-const double PathFinder::s_kPercentDTempPerSecond = -0.5;
 
 PathFinder::PathFinder()
 	: m_stopped{ true }
@@ -25,6 +24,7 @@ PathFinder::PathFinder()
 	, m_pathsPerSecond{ 0 }
 	, m_temperature{ s_kStartingTemperature }
 	, m_mode{ HillClimbing }
+	, m_tempDecay{ 1 }
 {
 }
 
@@ -109,7 +109,7 @@ void PathFinder::calculatePath()
 		if (m_mode == Anealing) {
 			auto now = high_resolution_clock::now();
 			double deltaT = duration_cast<nanoseconds>(now - begin).count() / 1000000000.0;
-			m_temperature += s_kPercentDTempPerSecond * deltaT * m_temperature;
+			m_temperature -= m_tempDecay * deltaT * m_temperature;
 		}
 
 		// Calculate current stats
@@ -119,7 +119,7 @@ void PathFinder::calculatePath()
 		using namespace std::chrono_literals;
 		if (timeSinceLastReport > 100ms) {
 			m_pathsPerSecond = pathsProcessed / (timeSinceLastReport.count() / 1000000.0);
-			m_avgAcceptanceProbability = acceptanceProbSum / acceptanceCalcCount;
+			m_avgAcceptanceProb = acceptanceProbSum / acceptanceCalcCount;
 			acceptanceCalcCount = 0;
 			acceptanceProbSum = 0;
 			lastReportTime = now;
@@ -141,6 +141,16 @@ void PathFinder::calculatePathAsync()
 void PathFinder::setMode(Mode mode)
 {
 	m_mode = mode;
+}
+
+void PathFinder::setTemperatureDecay(double tempDecay)
+{
+	m_tempDecay = tempDecay;
+}
+
+double PathFinder::getTemperatureDecay()
+{
+	return m_tempDecay;
 }
 
 bool PathFinder::stop()
@@ -184,12 +194,13 @@ void PathFinder::drawGraphSegment(NVGcontext* ctx, const Node& nodeFrom, const N
 
 void PathFinder::draw(NVGcontext* ctx)
 {
-	std::lock_guard<std::mutex> lock{ m_mutex };
+	std::unique_lock<std::mutex> lock{ m_mutex };
 	for (size_t i = 0; i < m_path.size(); ++i) {
 		Node& nodeFrom = *m_path.at(i);
 		Node& nodeTo = *m_path.at((i + 1) % m_path.size());
 		drawGraphSegment(ctx, nodeFrom, nodeTo, nvgRGBA(255, 255, 255, 255));
 	}
+	lock.unlock();
 
 	// Draw stats
 	nvgFontFace(ctx, "sans");
@@ -201,7 +212,8 @@ void PathFinder::draw(NVGcontext* ctx)
 	nvgText(ctx, 10, 40, ("Paths Per Second: " + toString(m_pathsPerSecond)).c_str(), nullptr);
 	if (m_mode == Anealing) {
 		nvgText(ctx, 10, 70, ("Temperature: " + toString(m_temperature)).c_str(), nullptr);
-		nvgText(ctx, 10, 100, ("Avg Acceptance Prob: " + toString(m_avgAcceptanceProbability)).c_str(), nullptr);
+		nvgText(ctx, 10, 100, ("Avg Acceptance Prob: " + toString(m_avgAcceptanceProb)).c_str(), nullptr);
+		nvgText(ctx, 10, 130, ("Temperature Decay: " + toString(m_tempDecay * 100) + "% Per Second").c_str(), nullptr);
 	}
 }
 

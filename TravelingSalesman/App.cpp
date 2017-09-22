@@ -27,8 +27,16 @@ AStarApp::AStarApp()
 	slider->setValue(0.5f);
 	slider->setCallback([this](float value) { m_modulation = value * 10.0f; });
 
+	l = new Label(window, "TEMPERATURE DECAY", "sans-bold");
+	l->setFontSize(10);
+	slider = new Slider(window);
+	slider->setValue(static_cast<float>(m_pathFinder.getTemperatureDecay() / 5));
+	slider->setCallback([this](float value) {
+		m_pathFinder.setTemperatureDecay(value * 5);
+	});
+
 	Window* window2 = new Window(this, "");
-	window2->setPosition({ 100, 15 });
+	window2->setPosition({ 110, 15 });
 	window2->setSize({ 800, 800 });
 	window2->setId("Main Window");
 
@@ -39,7 +47,7 @@ AStarApp::AStarApp()
 
 	// Setup the simulate button
 	Window* window3 = new Window(this, "");
-	window3->setPosition({ 920, 500 });
+	window3->setPosition({ 930, 500 });
 	window3->setLayout(new GroupLayout());
 	auto button = new Button(window3, "SIMULATE");
 	button->setBackgroundColor(Color(255, 0, 0, 1));
@@ -50,7 +58,7 @@ AStarApp::AStarApp()
 
 	// Setup stop
 	Window* window4 = new Window(this, "");
-	window4->setPosition({ 920, 685 });
+	window4->setPosition({ 930, 685 });
 	window4->setLayout(new GroupLayout());
 	button = new Button(window4, "STOP");
 	button->setBackgroundColor(Color(255, 0, 0, 1));
@@ -61,7 +69,7 @@ AStarApp::AStarApp()
 
 	// Setup mode select
 	Window* modeWindow = new Window(this, "Mode");
-	modeWindow->setPosition({ 907, 15 });
+	modeWindow->setPosition({ 917, 15 });
 	modeWindow->setLayout(new GroupLayout());
 	auto hillClimbingBtn = new CustomButton(modeWindow, "Hill Climbing");
 	hillClimbingBtn->setPushed(true);
@@ -106,14 +114,19 @@ AStarApp::AStarApp()
 	int fboWidth, fboHeight;
 	glfwGetFramebufferSize(mGLFWWindow, &fboWidth, &fboHeight);
 	m_shader.setUniform("resolution", Vector2f{ fboWidth, fboHeight });
-	float mx = std::max<float>(static_cast<float>(fboWidth), static_cast<float>(fboHeight));
-	auto xDim = fboWidth / mx;
-	auto yDim = fboHeight / mx;
-	m_shader.setUniform("screenRatio", Vector2f{ xDim, yDim });
 }
 
 void AStarApp::drawContents()
 {
+	static double prevTime = glfwGetTime();
+	double curTime = glfwGetTime();
+	double deltaTime = curTime - prevTime;
+	prevTime = curTime;
+
+	if (!m_pathFinder.isStopped()) {
+		m_modulation += static_cast<float>(deltaTime * 2);
+	}
+
 	m_shader.bind();
 	m_shader.setUniform("modulation", m_modulation);
 	m_shader.drawIndexed(GL_TRIANGLES, 0, 2);
