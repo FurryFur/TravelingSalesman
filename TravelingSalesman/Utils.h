@@ -1,8 +1,21 @@
+//
+// Bachelor of Software Engineering
+// Media Design School
+// Auckland
+// New Zealand
+//
+// (c) 2017 Media Design School
+//
+// Description  : A header only collection of useful utility functions and types.
+// Author       : Lance Chaney
+// Mail         : lance.cha7337@mediadesign.school.nz
+//
+
 #pragma once
 
 #include <array>
-#include  <random>
-#include  <iterator>
+#include <random>
+#include <iterator>
 #include <sstream>
 #include <iomanip>
 
@@ -16,7 +29,8 @@ class NDArray<T, DimLast> : public std::array<T, DimLast> {};
 
 // Erases an element from a vector in O(1) time without preserving order.
 template <typename Vector>
-typename Vector::iterator unorderedErase(Vector& v, typename Vector::iterator it) {
+typename Vector::iterator unorderedErase(Vector& v, typename Vector::iterator it) 
+{
 	if (it == std::prev(v.end()))
 		it = v.end();
 	else
@@ -27,14 +41,16 @@ typename Vector::iterator unorderedErase(Vector& v, typename Vector::iterator it
 
 // Erases an element from a vector in O(1) time without preserving order
 template <typename Vector>
-void unorderedErase(Vector& v, size_t i) {
+void unorderedErase(Vector& v, size_t i) 
+{
 	if (i != v.size() - 1)
 		v.at(i) = std::move(v.back());
 	v.pop_back();
 }
 
 // Returns a generator for generating random numbers
-std::mt19937& getRandomGenerator() {
+std::mt19937& getRandomGenerator() 
+{
 	static std::random_device rd;
 	static std::mt19937 gen(rd());
 	return gen;
@@ -42,21 +58,24 @@ std::mt19937& getRandomGenerator() {
 
 // Returns a random real number, uniformly distributed in the range [min, max)
 template<typename RealT = double>
-RealT randomReal(RealT min = 0, RealT max = 1) {
+RealT randomReal(RealT min = 0, RealT max = 1) 
+{
 	std::uniform_real_distribution<RealT> dist(min, max);
 	return dist(getRandomGenerator());
 }
 
 // Returns a random integer, uniformly distributed in the range [min, max] inclusive
 template<typename IntT = int>
-IntT randomInt(IntT min = 0, IntT max = 1) {
+IntT randomInt(IntT min = 0, IntT max = 1) 
+{
 	std::uniform_int_distribution<IntT> dist(min, max);
 	return dist(getRandomGenerator());
 }
 
 // Returns an iterator to a random element in the range [iterStart, iterEnd] inclusive
 template<typename Iter, typename RandomGenerator>
-Iter selectRandomly(Iter start, Iter end, RandomGenerator& g) {
+Iter selectRandomly(Iter start, Iter end, RandomGenerator& g) 
+{
 	std::uniform_int_distribution<std::_Iter_diff_t<Iter>> dist(0, std::distance(start, end) - 1);
 	std::advance(start, dist(g));
 	return start;
@@ -64,7 +83,8 @@ Iter selectRandomly(Iter start, Iter end, RandomGenerator& g) {
 
 // Returns an iterator to a random element in the range [iterStart, iterEnd] inclusive
 template<typename Iter>
-Iter selectRandomly(Iter start, Iter end) {
+Iter selectRandomly(Iter start, Iter end) 
+{
 	return selectRandomly(start, end, getRandomGenerator());
 }
 

@@ -1,3 +1,16 @@
+//
+// Bachelor of Software Engineering
+// Media Design School
+// Auckland
+// New Zealand
+//
+// (c) 2017 Media Design School
+//
+// Description  : The main canvas where nodes in the traveling salesman problem can be placed.
+// Author       : Lance Chaney
+// Mail         : lance.cha7337@mediadesign.school.nz
+//
+
 #include "Canvas.h"
 #include "Node.h"
 #include "PathFinder.h"
@@ -7,11 +20,6 @@ using namespace nanogui;
 Canvas::Canvas(Widget* parent, PathFinder& pathFinder)
 	: Widget(parent)
 	, m_pathFinder{ pathFinder }
-{
-}
-
-
-Canvas::~Canvas()
 {
 }
 

@@ -1,22 +1,33 @@
-#pragma once
+//
+// Bachelor of Software Engineering
+// Media Design School
+// Auckland
+// New Zealand
+//
+// (c) 2017 Media Design School
+//
+// Description  : Top level application class. 
+//                Lays out UI components and initializes system sub-components.
+// Author       : Lance Chaney
+// Mail         : lance.cha7337@mediadesign.school.nz
+//
 
-#include <future>
-#include <memory>
+#pragma once
 
 #include <nanogui\nanogui.h>
 
 #include "PathFinder.h"
 
-class AStarApp : public nanogui::Screen {
+class TravelingSalesmanApp : public nanogui::Screen {
 public:
 	// Setup UI and Shader
-	AStarApp();
+	TravelingSalesmanApp();
 
 	// Draw opengl stuff (screen will handle clear and buffer swap)
-	virtual void drawContents() override;
+	void drawContents() override;
 
 	// Draw nanonvg (vector graphics) stuff
-	virtual void draw(NVGcontext* ctx) override;
+	void draw(NVGcontext* ctx) override;
 
 private:
 	nanogui::GLShader m_shader;

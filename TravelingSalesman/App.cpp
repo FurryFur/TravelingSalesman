@@ -1,15 +1,26 @@
-#include <future>
+//
+// Bachelor of Software Engineering
+// Media Design School
+// Auckland
+// New Zealand
+//
+// (c) 2017 Media Design School
+//
+// Description  : Top level application class. 
+//                Lays out UI components and initializes system sub-components.
+// Author       : Lance Chaney
+// Mail         : lance.cha7337@mediadesign.school.nz
+//
 
 #include "App.h"
 #include "Node.h"
-#include "CustomButton.h"
 #include "Canvas.h"
 #include "PathFinder.h"
 
 using namespace nanogui;
 
-AStarApp::AStarApp()
-	: Screen(Vector2i(1500, 850), "AStar")
+TravelingSalesmanApp::TravelingSalesmanApp()
+	: Screen(Vector2i(1500, 850), "Traveling Salesman")
 	, m_modulation{ 5 }
 {
 	/**
@@ -71,13 +82,13 @@ AStarApp::AStarApp()
 	Window* modeWindow = new Window(this, "Mode");
 	modeWindow->setPosition({ 917, 15 });
 	modeWindow->setLayout(new GroupLayout());
-	auto hillClimbingBtn = new CustomButton(modeWindow, "Hill Climbing");
+	auto hillClimbingBtn = new Button(modeWindow, "Hill Climbing");
 	hillClimbingBtn->setPushed(true);
 	hillClimbingBtn->setFlags(Button::RadioButton);
 	hillClimbingBtn->setCallback([this]() {
 		m_pathFinder.setMode(PathFinder::Mode::HillClimbing);
 	});
-	auto annealingBtn = new CustomButton(modeWindow, "Simulated Annealing");
+	auto annealingBtn = new Button(modeWindow, "Simulated Annealing");
 	annealingBtn->setFlags(Button::RadioButton);
 	annealingBtn->setCallback([this]() {
 		m_pathFinder.setMode(PathFinder::Mode::Anealing);
@@ -116,7 +127,7 @@ AStarApp::AStarApp()
 	m_shader.setUniform("resolution", Vector2f{ fboWidth, fboHeight });
 }
 
-void AStarApp::drawContents()
+void TravelingSalesmanApp::drawContents()
 {
 	static double prevTime = glfwGetTime();
 	double curTime = glfwGetTime();
@@ -132,7 +143,7 @@ void AStarApp::drawContents()
 	m_shader.drawIndexed(GL_TRIANGLES, 0, 2);
 }
 
-void AStarApp::draw(NVGcontext * ctx)
+void TravelingSalesmanApp::draw(NVGcontext * ctx)
 {
 	//nvgBeginPath(ctx);
 	//nvgRect(ctx, 100, 100, 120, 30);

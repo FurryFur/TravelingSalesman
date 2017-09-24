@@ -86,7 +86,6 @@ xcopy /y "$(ProjectDir)Shaders\*.glsl" "$(OutDir)Shaders\"</Command>
   <ItemGroup>
     <ClCompile Include="App.cpp" />
     <ClCompile Include="Canvas.cpp" />
-    <ClCompile Include="CustomButton.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Node.cpp" />
     <ClCompile Include="PathFinder.cpp" />
@@ -94,7 +93,6 @@ xcopy /y "$(ProjectDir)Shaders\*.glsl" "$(OutDir)Shaders\"</Command>
   <ItemGroup>
     <ClInclude Include="App.h" />
     <ClInclude Include="Canvas.h" />
-    <ClInclude Include="CustomButton.h" />
     <ClInclude Include="Node.h" />
     <ClInclude Include="PathFinder.h" />
     <ClInclude Include="Utils.h" />

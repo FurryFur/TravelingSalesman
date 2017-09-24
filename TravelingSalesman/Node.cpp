@@ -1,4 +1,17 @@
-#include <algorithm>
+//
+// Bachelor of Software Engineering
+// Media Design School
+// Auckland
+// New Zealand
+//
+// (c) 2017 Media Design School
+//
+// Description  : A node in the traveling salesman problem.
+//                (Callbacks can be set for mouse events)
+// Author       : Lance Chaney
+// Mail         : lance.cha7337@mediadesign.school.nz
+//
+
 #ifdef _DEBUG
 #include <iostream>
 #endif // _DEBUG
@@ -64,6 +77,7 @@ bool Node::mouseDragEvent(const Vector2i& p, const Vector2i& rel, int buttonStat
 {
 	if (m_dragCallback) {
 		m_dragCallback(p, rel, buttonState, modifiers);
+		return true;
 	}
 
 	return false;

@@ -1,30 +1,46 @@
+//
+// Bachelor of Software Engineering
+// Media Design School
+// Auckland
+// New Zealand
+//
+// (c) 2017 Media Design School
+//
+// Description  : A node in the traveling salesman problem.
+//                (Callbacks can be set for mouse events)
+// Author       : Lance Chaney
+// Mail         : lance.cha7337@mediadesign.school.nz
+//
+
 #pragma once
 
-#include <list>
-#include <memory>
 #include <functional>
 
 #include <Eigen\Dense>
 #include <nanogui\nanogui.h>
 
-class Grid;
-class NavPainter;
-
 class Node : public nanogui::Widget {
 public:
 	Node(nanogui::Widget* parent);
-	virtual ~Node() override;
+	~Node() override;
 
-	// Draws the cell.
-	virtual void draw(NVGcontext* ctx) override;
+	// Draws the node.
+	void draw(NVGcontext* ctx) override;
 
 	using CallbackT = std::function<void(const nanogui::Vector2i& p, int button, bool down, int modifiers)>;
 	using DragCallbackT = std::function<void(const nanogui::Vector2i& p, const nanogui::Vector2i& rel, int buttonState, int modifiers)>;
 
+	// Sets the callback function to execute on a mouse click event.
 	void setCallback(CallbackT callback);
+
+	// Sets the callback function to execute on a mouse drag event.
 	void setDragCallback(DragCallbackT callback);
-	virtual bool mouseButtonEvent(const nanogui::Vector2i& p, int button, bool down, int modifiers) override;
-	virtual bool mouseDragEvent(const nanogui::Vector2i& p, const nanogui::Vector2i& rel, int button, int modifiers) override;
+
+	// Calls the current mouse click callback function
+	bool mouseButtonEvent(const nanogui::Vector2i& p, int button, bool down, int modifiers) override;
+
+	// Calls the current mouse drag callback function.
+	bool mouseDragEvent(const nanogui::Vector2i& p, const nanogui::Vector2i& rel, int button, int modifiers) override;
 
 	// Not a virtual function, be careful calling this.
 	// Needs to be called on a pointer or reference to type Node.

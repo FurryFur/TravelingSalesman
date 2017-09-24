@@ -1,7 +1,19 @@
-#include <vector>
+//
+// Bachelor of Software Engineering
+// Media Design School
+// Auckland
+// New Zealand
+//
+// (c) 2017 Media Design School
+//
+// Description  : Solver for the traveling salesman problem.
+//                Is able to draw current solution and statistics.
+// Author       : Lance Chaney
+// Mail         : lance.cha7337@mediadesign.school.nz
+//
+
 #include <chrono>
 #include <math.h>
-#include <functional>
 #include <algorithm>
 #include <string>
 #ifdef _DEBUG
