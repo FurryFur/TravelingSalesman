@@ -77,6 +77,17 @@ void PathFinder::calculatePath()
 	std::cout << "Pathing started" << std::endl;
 #endif // _DEBUG
 
+	if (m_mode == Mode::Genetic)
+		doGenetic();
+	else
+		doAnnealingHillclimbing();
+
+
+	m_stopped = true;
+}
+
+void PathFinder::doAnnealingHillclimbing()
+{
 	std::vector<Node*> newPath = m_path;
 	m_pathLength = calculatePathLength(m_path);
 	m_pathsPerSecond = 0;
@@ -112,7 +123,8 @@ void PathFinder::calculatePath()
 			std::swap(m_path.at(i), m_path.at(j));
 			m_pathLength = newPathLength;
 			lock.unlock();
-		} else {
+		}
+		else {
 			// Revert path to previous if not accepted
 			std::swap(*it1, *it2);
 		}
@@ -138,8 +150,101 @@ void PathFinder::calculatePath()
 			pathsProcessed = 0;
 		}
 	}
+}
 
-	m_stopped = true;
+void PathFinder::doGenetic()
+{
+	const size_t kPopulationSize = 50;
+	const size_t kSelectionPoolSize = 5;
+	const double kMutationProbability = 0.1;
+
+	// Make initial population
+	std::vector<std::vector<Node*>> population(kPopulationSize);
+	for (size_t i = 0; i < kPopulationSize; ++i)
+		population.at(i) = getRandomPermutation(m_path);
+
+	while (!m_stopped) {
+		// Loop population size times
+		std::vector<std::vector<Node*>> nextGeneration(kPopulationSize);
+		for (size_t i = 0; i < kPopulationSize; ++i) {
+			// Create two selection pools
+			std::vector<std::vector<Node*>> selectionPool1(kSelectionPoolSize);
+			std::vector<std::vector<Node*>> selectionPool2(kSelectionPoolSize);
+			for (size_t i = 0; i < kSelectionPoolSize; ++i) {
+				selectionPool1.at(i) = *selectRandomly(population.begin(), population.end());
+				selectionPool2.at(i) = *selectRandomly(population.begin(), population.end());
+			}
+
+			// Take the best one from each pool as parent 1 and parent 2 respectively
+			const std::vector<Node*>& parent1 = selectBest(selectionPool1);
+			const std::vector<Node*>& parent2 = selectBest(selectionPool2);
+
+			// Perform crossover
+			nextGeneration.at(i) = crossover(parent1, parent2);
+
+			// Do random mutation on random chance
+			if (randomReal() < kMutationProbability) {
+				nextGeneration.at(i) = mutate(nextGeneration.at(i));
+			}
+		}
+
+		// Update the initial population
+		population = nextGeneration;
+
+		// Update the current best path
+		m_path = selectBest(population);
+		m_pathLength = calculatePathLength(m_path);
+	}
+}
+
+const std::vector<Node*>& PathFinder::selectBest(const std::vector<std::vector<Node*>>& selectionPool)
+{
+	size_t bestPathIdx = 0;
+	double bestPathLength = calculatePathLength(selectionPool.at(bestPathIdx));
+	for (size_t i = 1; i < selectionPool.size(); ++i) {
+		double candidatePathLength = calculatePathLength(selectionPool.at(i));
+		if (candidatePathLength < bestPathLength) {
+			bestPathLength = candidatePathLength;
+			bestPathIdx = i;
+		}
+	}
+
+	return selectionPool.at(bestPathIdx);
+}
+
+std::vector<Node*> PathFinder::crossover(const std::vector<Node*>& parent1, const std::vector<Node*>& parent2)
+{
+	assert(parent1.size() == parent2.size());
+
+	size_t cutPoint = randomInt(static_cast<size_t>(0), parent1.size());
+	std::vector<Node*> childPath(parent1.size());
+
+	// Take genes from parent 1
+	for (size_t i = 0; i < cutPoint; ++i) {
+		childPath.at(i) = parent1.at(i);
+	}
+
+	// Take genes from parent 2
+	for (size_t i = cutPoint; i < parent2.size(); ++i) {
+		// Check we are not taking nodes from parent 2 that we have already gotten from parent 1
+		auto cutPointIt = std::next(parent1.begin(), cutPoint);
+		auto takenNodeIt = std::find(parent1.begin(), cutPointIt, parent2.at(i));
+		if (takenNodeIt == cutPointIt)
+			childPath.at(i) = parent2.at(i);
+		else
+			childPath.at(i) = parent1.at(i);
+	}
+
+	return childPath;
+}
+
+std::vector<Node*>& PathFinder::mutate(std::vector<Node*>& path)
+{
+	auto it1 = selectRandomly(path.begin(), path.end());
+	auto it2 = selectRandomly(path.begin(), path.end());
+	std::swap(*it1, *it2);
+
+	return path;
 }
 
 void PathFinder::calculatePathAsync()
@@ -221,7 +326,8 @@ void PathFinder::draw(NVGcontext* ctx)
 	nvgTextAlign(ctx, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
 	std::string distText = "Distance: " + toString(m_pathLength);
 	nvgText(ctx, 10, 10, distText.c_str(), nullptr);
-	nvgText(ctx, 10, 40, ("Paths Per Second: " + toString(m_pathsPerSecond)).c_str(), nullptr);
+	if (m_mode != Genetic)
+		nvgText(ctx, 10, 40, ("Paths Per Second: " + toString(m_pathsPerSecond)).c_str(), nullptr);
 	if (m_mode == Anealing) {
 		nvgText(ctx, 10, 70, ("Temperature: " + toString(m_temperature)).c_str(), nullptr);
 		nvgText(ctx, 10, 100, ("Avg Acceptance Prob: " + toString(m_avgAcceptanceProb)).c_str(), nullptr);

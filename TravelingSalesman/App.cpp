@@ -93,6 +93,11 @@ TravelingSalesmanApp::TravelingSalesmanApp()
 	annealingBtn->setCallback([this]() {
 		m_pathFinder.setMode(PathFinder::Mode::Anealing);
 	});
+	auto geneticBtn = new Button(modeWindow, "Genetic");
+	geneticBtn->setFlags(Button::RadioButton);
+	geneticBtn->setCallback([this]() {
+		m_pathFinder.setMode(PathFinder::Mode::Genetic);
+	});
 
 	// Do the layout calculations based on what was added to the GUI
 	performLayout();

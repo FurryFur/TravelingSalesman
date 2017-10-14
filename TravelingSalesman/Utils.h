@@ -88,6 +88,18 @@ Iter selectRandomly(Iter start, Iter end)
 	return selectRandomly(start, end, getRandomGenerator());
 }
 
+// Returns a random permutatoin of the collection
+template<typename CollectionT>
+CollectionT getRandomPermutation(const CollectionT& collection) {
+	CollectionT randomPermutation(collection.size());
+	for (size_t i = 0; i < collection.size(); ++i) {
+		size_t selectedIdx = randomInt(static_cast<size_t>(0), collection.size() - 1);
+		randomPermutation.at(i) = collection.at(selectedIdx);
+	}
+
+	return randomPermutation;
+}
+
 // Converts a number to a string with the specified number of decimal places
 template <typename T>
 std::string toString(const T value, const int decimalPlaces = 2)

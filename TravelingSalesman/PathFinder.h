@@ -25,7 +25,8 @@ class PathFinder {
 public:
 	enum Mode {
 		Anealing,
-		HillClimbing
+		HillClimbing,
+		Genetic
 	};
 
 
@@ -92,6 +93,21 @@ private:
 
 	// Draws a connecting line between two nodes
 	void drawGraphSegment(NVGcontext* ctx, const Node& nodeFrom, const Node& nodeTo, const NVGcolor& color);
+
+	// Helper function to perform anealing / hillclimbing.
+	void doAnnealingHillclimbing();
+
+	// Helper function to calculate path based on a genetic algorithm.
+	void doGenetic();
+	
+	// Selects the best candidate path from a list
+	const std::vector<Node*>& selectBest(const std::vector<std::vector<Node*>>& selectionPool);
+
+	// Constructs a new path from two other parent paths
+	std::vector<Node*> crossover(const std::vector<Node*>& parent1, const std::vector<Node*>& parent2);
+
+	// Mutates the path in place and returns the result
+	std::vector<Node*>& mutate(std::vector<Node*>& path);
 
 	static const double s_kStartingTemperature;
 
