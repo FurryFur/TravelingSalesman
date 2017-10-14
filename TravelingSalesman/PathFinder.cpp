@@ -192,8 +192,10 @@ void PathFinder::doGenetic()
 		population = nextGeneration;
 
 		// Update the current best path
+		std::unique_lock<std::mutex> lock(m_mutex);
 		m_path = selectBest(population);
 		m_pathLength = calculatePathLength(m_path);
+		lock.unlock();
 	}
 }
 
