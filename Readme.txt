@@ -1,6 +1,6 @@
 Nodes can be added and removed by left and right click respectively.
 Nodes can be dragged around by holding left click.
-The mode can be switch from Hill Climbing to Simulated Annealing from the Mode panel.
+The mode can be switch from Hill Climbing to Simulated Annealing or Genetic from the Mode panel.
 The solver runs indefinitely unless stopped by clicking the big stop button.
 
 Open Source Libraries:
