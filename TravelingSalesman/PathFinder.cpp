@@ -34,6 +34,7 @@ PathFinder::PathFinder()
 	, m_path{}
 	, m_pathLength{ 0 }
 	, m_pathsPerSecond{ 0 }
+	, m_generationsPerSecond{ 0 }
 	, m_temperature{ s_kStartingTemperature }
 	, m_mode{ HillClimbing }
 	, m_tempDecay{ 1 }
@@ -158,18 +159,24 @@ void PathFinder::doGenetic()
 	const size_t kSelectionPoolSize = 5;
 	const double kMutationProbability = 0.1;
 
-	// Make initial population
 	std::vector<std::vector<Node*>> population(kPopulationSize);
+	std::vector<std::vector<Node*>> nextGeneration(kPopulationSize);
+	std::vector<std::vector<Node*>> selectionPool1(kSelectionPoolSize);
+	std::vector<std::vector<Node*>> selectionPool2(kSelectionPoolSize);
+
+	// Make initial population
 	for (size_t i = 0; i < kPopulationSize; ++i)
 		population.at(i) = getRandomPermutation(m_path);
 
+	// Start timing
+	using namespace std::chrono;
+	auto lastReportTime = high_resolution_clock::now();
+	unsigned long long generationCount = 0;
+
 	while (!m_stopped) {
 		// Loop population size times
-		std::vector<std::vector<Node*>> nextGeneration(kPopulationSize);
 		for (size_t i = 0; i < kPopulationSize; ++i) {
 			// Create two selection pools
-			std::vector<std::vector<Node*>> selectionPool1(kSelectionPoolSize);
-			std::vector<std::vector<Node*>> selectionPool2(kSelectionPoolSize);
 			for (size_t i = 0; i < kSelectionPoolSize; ++i) {
 				selectionPool1.at(i) = *selectRandomly(population.begin(), population.end());
 				selectionPool2.at(i) = *selectRandomly(population.begin(), population.end());
@@ -183,23 +190,33 @@ void PathFinder::doGenetic()
 			nextGeneration.at(i) = crossover(parent1, parent2);
 
 			// Do random mutation on random chance
-			//if (randomReal() < kMutationProbability) {
-			//	nextGeneration.at(i) = mutate(nextGeneration.at(i));
-			//}
+			if (randomReal() < kMutationProbability) {
+				nextGeneration.at(i) = mutate(nextGeneration.at(i));
+			}
 		}
 
 		// Update the initial population
-		population = nextGeneration;
+		population.swap(nextGeneration);
 
 		// Update the current best path
 		std::unique_lock<std::mutex> lock(m_mutex);
-		m_path = selectBest(population);
-		m_pathLength = calculatePathLength(m_path);
+		m_path = selectBest(population, &m_pathLength);
 		lock.unlock();
+
+		// Calculate current stats
+		++generationCount;
+		auto now = high_resolution_clock::now();
+		auto timeSinceLastReport = duration_cast<microseconds>(now - lastReportTime);
+		using namespace std::chrono_literals;
+		if (timeSinceLastReport > 100ms) {
+			m_generationsPerSecond = generationCount / (timeSinceLastReport.count() / 1000000.0);
+			lastReportTime = now;
+			generationCount = 0;
+		}
 	}
 }
 
-const std::vector<Node*>& PathFinder::selectBest(const std::vector<std::vector<Node*>>& selectionPool)
+const std::vector<Node*>& PathFinder::selectBest(const std::vector<std::vector<Node*>>& selectionPool, double* outPathLength)
 {
 	size_t bestPathIdx = 0;
 	double bestPathLength = calculatePathLength(selectionPool.at(bestPathIdx));
@@ -210,6 +227,9 @@ const std::vector<Node*>& PathFinder::selectBest(const std::vector<std::vector<N
 			bestPathIdx = i;
 		}
 	}
+
+	if (outPathLength)
+		*outPathLength = bestPathLength;
 
 	return selectionPool.at(bestPathIdx);
 }
@@ -230,11 +250,25 @@ std::vector<Node*> PathFinder::crossover(const std::vector<Node*>& parent1, cons
 	for (size_t i = cutPoint; i < parent2.size(); ++i) {
 		// Make sure we don't take duplicate nodes
 		auto curChildPathEnd = std::next(childPath.begin(), i);
-		auto takenNodeIt = std::find(childPath.begin(), curChildPathEnd, parent2.at(i));
-		if (takenNodeIt == curChildPathEnd)
+		if (notIn(childPath.begin(), curChildPathEnd, parent2.at(i)))
 			childPath.at(i) = parent2.at(i);
-		else
+		else if (notIn(childPath.begin(), curChildPathEnd, parent1.at(i)))
 			childPath.at(i) = parent1.at(i);
+		else {
+			// If we couldn't take either of the parents nodes at this position,
+			// then walk backwards over both parents and select the first unused
+			// node.
+			for (size_t j = i - 1; j >= 0; --j) {
+				if (notIn(childPath.begin(), curChildPathEnd, parent2.at(j))) {
+					childPath.at(i) = parent2.at(j);
+					break;
+				}
+				if (notIn(childPath.begin(), curChildPathEnd, parent1.at(j))) {
+					childPath.at(i) = parent1.at(j);
+					break;
+				}
+			}
+		}
 	}
 
 	return childPath;
@@ -259,7 +293,12 @@ void PathFinder::calculatePathAsync()
 
 void PathFinder::setMode(Mode mode)
 {
+	bool restart = stop();
+
 	m_mode = mode;
+
+	if (restart)
+		calculatePathAsync();
 }
 
 void PathFinder::setTemperatureDecay(double tempDecay)
@@ -330,6 +369,8 @@ void PathFinder::draw(NVGcontext* ctx)
 	nvgText(ctx, 10, 10, distText.c_str(), nullptr);
 	if (m_mode != Genetic)
 		nvgText(ctx, 10, 40, ("Paths Per Second: " + toString(m_pathsPerSecond)).c_str(), nullptr);
+	else
+		nvgText(ctx, 10, 40, ("Generations Per Second: " + toString(m_generationsPerSecond)).c_str(), nullptr);
 	if (m_mode == Anealing) {
 		nvgText(ctx, 10, 70, ("Temperature: " + toString(m_temperature)).c_str(), nullptr);
 		nvgText(ctx, 10, 100, ("Avg Acceptance Prob: " + toString(m_avgAcceptanceProb)).c_str(), nullptr);

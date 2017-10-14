@@ -100,8 +100,9 @@ private:
 	// Helper function to calculate path based on a genetic algorithm.
 	void doGenetic();
 	
-	// Selects the best candidate path from a list
-	const std::vector<Node*>& selectBest(const std::vector<std::vector<Node*>>& selectionPool);
+	// Selects the best candidate path from a list.
+	// Takes an optional pointer to output the path length into.
+	const std::vector<Node*>& selectBest(const std::vector<std::vector<Node*>>& selectionPool, double* outPathLength = nullptr);
 
 	// Constructs a new path from two other parent paths
 	std::vector<Node*> crossover(const std::vector<Node*>& parent1, const std::vector<Node*>& parent2);
@@ -117,6 +118,7 @@ private:
 	double m_tempDecay;
 	bool m_stopped;
 	double m_pathsPerSecond;
+	double m_generationsPerSecond;
 	double m_avgAcceptanceProb;
 	std::mutex m_mutex;
 	std::thread m_processingThread;

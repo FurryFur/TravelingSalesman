@@ -100,6 +100,22 @@ CollectionT getRandomPermutation(const CollectionT& collection) {
 	return randomPermutation;
 }
 
+// Checks if the specified element exists in the range [start, end) exclusive
+template<typename Iter, typename T>
+bool in(Iter start, Iter end, T val) {
+	auto resultIt = std::find(start, end, val);
+	if (resultIt != end)
+		return true;
+	else
+		return false;
+}
+
+// Checks if the specified element does not exists in the range [start, end) exclusive
+template<typename Iter, typename T>
+bool notIn(Iter start, Iter end, T val) {
+	return !in(start, end, val);
+}
+
 // Converts a number to a string with the specified number of decimal places
 template <typename T>
 std::string toString(const T value, const int decimalPlaces = 2)
