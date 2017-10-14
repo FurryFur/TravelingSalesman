@@ -91,10 +91,10 @@ Iter selectRandomly(Iter start, Iter end)
 // Returns a random permutatoin of the collection
 template<typename CollectionT>
 CollectionT getRandomPermutation(const CollectionT& collection) {
-	CollectionT randomPermutation(collection.size());
+	CollectionT randomPermutation = collection;
 	for (size_t i = 0; i < collection.size(); ++i) {
-		size_t selectedIdx = randomInt(static_cast<size_t>(0), collection.size() - 1);
-		randomPermutation.at(i) = collection.at(selectedIdx);
+		size_t selectedIdx = randomInt(static_cast<size_t>(i), collection.size() - 1);
+		std::swap(randomPermutation.at(i), randomPermutation.at(selectedIdx));
 	}
 
 	return randomPermutation;

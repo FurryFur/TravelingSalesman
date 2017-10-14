@@ -183,9 +183,9 @@ void PathFinder::doGenetic()
 			nextGeneration.at(i) = crossover(parent1, parent2);
 
 			// Do random mutation on random chance
-			if (randomReal() < kMutationProbability) {
-				nextGeneration.at(i) = mutate(nextGeneration.at(i));
-			}
+			//if (randomReal() < kMutationProbability) {
+			//	nextGeneration.at(i) = mutate(nextGeneration.at(i));
+			//}
 		}
 
 		// Update the initial population
@@ -228,10 +228,10 @@ std::vector<Node*> PathFinder::crossover(const std::vector<Node*>& parent1, cons
 
 	// Take genes from parent 2
 	for (size_t i = cutPoint; i < parent2.size(); ++i) {
-		// Check we are not taking nodes from parent 2 that we have already gotten from parent 1
-		auto cutPointIt = std::next(parent1.begin(), cutPoint);
-		auto takenNodeIt = std::find(parent1.begin(), cutPointIt, parent2.at(i));
-		if (takenNodeIt == cutPointIt)
+		// Make sure we don't take duplicate nodes
+		auto curChildPathEnd = std::next(childPath.begin(), i);
+		auto takenNodeIt = std::find(childPath.begin(), curChildPathEnd, parent2.at(i));
+		if (takenNodeIt == curChildPathEnd)
 			childPath.at(i) = parent2.at(i);
 		else
 			childPath.at(i) = parent1.at(i);
