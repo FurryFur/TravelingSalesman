@@ -88,7 +88,7 @@ Iter selectRandomly(Iter start, Iter end)
 	return selectRandomly(start, end, getRandomGenerator());
 }
 
-// Returns a random permutatoin of the collection
+// Returns a random permutation of the collection
 template<typename CollectionT>
 CollectionT getRandomPermutation(const CollectionT& collection) {
 	CollectionT randomPermutation = collection;
