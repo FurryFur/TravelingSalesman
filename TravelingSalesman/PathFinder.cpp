@@ -157,7 +157,7 @@ void PathFinder::doGenetic()
 {
 	const size_t kPopulationSize = 50;
 	const size_t kSelectionPoolSize = 5;
-	const double kMutationProbability = 0.1;
+	const double kMutationProbability = 0.2;
 
 	std::vector<std::vector<Node*>> population(kPopulationSize);
 	std::vector<std::vector<Node*>> nextGeneration(kPopulationSize);
@@ -276,9 +276,22 @@ std::vector<Node*> PathFinder::crossover(const std::vector<Node*>& parent1, cons
 
 std::vector<Node*>& PathFinder::mutate(std::vector<Node*>& path)
 {
+	const double kMutationSelectionProbability = 0.5;
 	auto it1 = selectRandomly(path.begin(), path.end());
 	auto it2 = selectRandomly(path.begin(), path.end());
-	std::swap(*it1, *it2);
+	if (randomReal() < kMutationSelectionProbability) {
+		// Mutate by swapping two nodes in the path
+		std::swap(*it1, *it2);
+	} else {
+		// Mutate by selecting two nodes in the path and 
+		// reversing the order of all nodes between them
+		auto it1Idx = std::distance(path.begin(), it1);
+		auto it2Idx = std::distance(path.begin(), it2);
+		if (it1Idx < it2Idx)
+			std::reverse(it1, std::next(it2));
+		else
+			std::reverse(it2, std::next(it1));
+	}
 
 	return path;
 }
